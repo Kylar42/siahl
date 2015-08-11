@@ -1,3 +1,4 @@
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
@@ -31,7 +32,7 @@ public class Main {
         File[] jsons = root.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith("json")|| new File(dir, name).isDirectory();
+                return name.endsWith("32.json")|| new File(dir, name).isDirectory();
             }
         });
         List<File> teams = new ArrayList<File>();
@@ -67,6 +68,17 @@ public class Main {
         JSONParser parser = new JSONParser();
         try {
             JSONObject parse = (JSONObject)parser.parse(new FileReader(kid));
+            long teamId = (Long)parse.get("team_number");
+            Team team = teamIdMap.get(teamId);
+            TeamSeason teamSeason = new TeamSeason();
+            Season season = seasonForID((int)parse.get("season_number"));
+            JSONArray skatersJson = (JSONArray)parse.get("skaters");
+            for(JSONObject skater : (Iterable<JSONObject>)skatersJson){
+                String name = (String)skater.get("name");
+                long goals = (Long)skater.get("goals");
+                long assists = (Long)skater.get("assists");
+                PlayerSeason ps = new PlayerSeason(new Player(name), (int)goals, (int)assists, season);
+            }
             //parse.
         } catch (Exception e) {
             e.printStackTrace();
@@ -95,18 +107,18 @@ public class Main {
                     Division d = Division.fromInputString(div);
                     Team t = new Team(teamId, teamname.toString(), d);
                     teamIdMap.put(teamId, t);
-                    if(!teamNameMap.containsKey(teamname.toString())) {
-                        teamNameMap.put(teamname.toString(), t);
-                    }else{
-                        System.out.println("Ugh. Found dupe team:"+teamInfo);
+                    Team oldTeam = teamNameMap.get(teamname.toString());
+                    if(null != oldTeam){
+                        teamIdMap.remove(oldTeam.id);
                     }
-
+                    teamNameMap.put(teamname.toString(), t);
                 }
 
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     private Season seasonForID(int seasonId){

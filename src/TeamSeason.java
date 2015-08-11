@@ -7,4 +7,8 @@ public class TeamSeason {
     Team team;
     int season;
     Division division;
+
+    public TeamSeason(Team team) {
+        this.team = team;
+    }
 }

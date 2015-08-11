@@ -4,7 +4,11 @@
  * "If I cannot see, it is because I am being stood upon by giants."
  */
 public class Player {
-    int id;
     String fname;
     String lname;
+
+    Player (String name){
+        fname = name.substring(0, name.indexOf(" "));
+        lname = name.substring(name.lastIndexOf(" "));
+    }
 }
