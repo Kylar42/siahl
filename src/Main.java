@@ -12,12 +12,17 @@ import java.util.*;
 public class Main {
 
     List<Season> seasons = new ArrayList<>();
-    Map<Integer, Team> teams = new HashMap<Integer, Team>();
+    Map<Long, Team> teamIdMap = new HashMap<>();
+    Map<String, Team> teamNameMap = new HashMap();
 
 
     public static void main(String[] args) {
         Main m = new Main();
         m.readSeasons(new File("data/siahl-data-2015-08-07/leagues/1/seasons"));
+
+        for(Team t : m.teamIdMap.values()){
+        }
+
         System.out.println(m.seasons);
 
     }
@@ -46,7 +51,7 @@ public class Main {
         File[] jsons = f.listFiles(new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith("json") || new File(dir, name).isDirectory();
+                return name.equals("32.json") || new File(dir, name).isDirectory();
             }
         });
         for(File kid : jsons){
@@ -59,7 +64,13 @@ public class Main {
     }
 
     private void readTeamSeason(File kid){
-
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject parse = (JSONObject)parser.parse(new FileReader(kid));
+            //parse.
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void readSeasonJson(File f){
@@ -74,6 +85,25 @@ public class Main {
             String seasonName = (String)parse.get("season_name");
             Season s = new Season(complete, seasonName, seasonNum, startDate, endDate);
             seasons.add(s);
+            JSONObject teamsJSON = (JSONObject)parse.get("teams");
+            for(Object teamname : teamsJSON.keySet()){
+                JSONObject teamInfo = (JSONObject)teamsJSON.get(teamname);
+                long teamId = (Long)teamInfo.get("team_number");
+                //see if we have this team
+                if(!teamIdMap.containsKey(teamId)){
+                    String div = (String)teamInfo.get("siahl_sj_league");
+                    Division d = Division.fromInputString(div);
+                    Team t = new Team(teamId, teamname.toString(), d);
+                    teamIdMap.put(teamId, t);
+                    if(!teamNameMap.containsKey(teamname.toString())) {
+                        teamNameMap.put(teamname.toString(), t);
+                    }else{
+                        System.out.println("Ugh. Found dupe team:"+teamInfo);
+                    }
+
+                }
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
